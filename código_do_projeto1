@@ -1,0 +1,202 @@
+from machine import Pin, PWM, ADC
+import utime
+import random
+import neopixel
+import time
+import math
+
+#definindo variaveis de posicao
+posx = 0
+posy = 0
+
+#definindo vetor de escolhas do jogador
+playerA = [0, 0, 0]
+playerB = [0, 0, 0]
+
+#definindo variavel do vencedor
+vencedor = 0
+
+# Define os pinos como saída PWM
+red = PWM(Pin(12))
+green = PWM(Pin(11))
+blue = PWM(Pin(13))
+
+# Define a frequência do PWM (500 Hz é um valor comum)
+red.freq(500)
+green.freq(500)
+blue.freq(500)
+
+#definir define a cor do LED RGB com valores de 0 a 65535.
+def set_color(r, g, b):
+    red.duty_u16(r)
+    green.duty_u16(g)
+    blue.duty_u16(b)
+
+#definindo um offset para a escala RGB
+def map_value(value, in_min, in_max, out_min, out_max):
+    return (value - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+#gerar uma cor aleatoria para LED e registrar seus valores na lista RGB
+RGB = [random.randint(0, 65535),random.randint(0, 65535),random.randint(0, 65535)]
+set_color(RGB[0],RGB[1],RGB[2])
+print (RGB)
+
+# Configuração dos botões
+button_a = Pin(5, Pin.IN, Pin.PULL_UP)
+button_b = Pin(6, Pin.IN, Pin.PULL_UP)
+
+#definir matriz de LEDs
+# Número de LEDs na sua matriz 5x5
+NUM_LEDS = 25
+
+# Inicializar a matriz de NeoPixels no GPIO7
+np = neopixel.NeoPixel(Pin(7), NUM_LEDS)
+
+# Definindo a matriz de LEDs
+LED_MATRIX = [
+    [24, 23, 22, 21, 20],
+    [15, 16, 17, 18, 19],
+    [14, 13, 12, 11, 10],
+    [5, 6, 7, 8, 9],
+    [4, 3, 2, 1, 0]]
+
+
+def acender_led(x, y, cor):
+    indice = LED_MATRIX[x][y]
+    np[indice] = cor  # Define a cor do LED
+    np.write()  # Atualiza os LEDs
+
+# Inicializar ADC para os pinos VRx (GPIO26)
+adc_vrx = ADC(Pin(27))
+
+def acender_led_joystick(valor, posx, posy):
+    brilho = map_value(valor, 0, 65535, 0, 255)  # Normalizar para 0-255
+     
+    x, y = posx, posy  # Escolher um LED fixo da matriz (ajuste conforme necessário)
+    
+    if (posx == 0 and posy == 0) or (posx == 0 and posy == 4):
+        cor = (brilho, 0, 0)  # Configuração da intensidade do LED vermelho
+    elif (posx == 1 and posy == 0) or (posx == 1 and posy == 4):
+        cor = (0, brilho, 0)  # Configuração da intensidade do LED verde
+    elif (posx == 2 and posy == 0) or (posx == 2 and posy == 4):
+        cor = (0, 0, brilho)
+    
+    indice = LED_MATRIX[x][y]
+    np[indice] = cor  # Define a cor do LED
+    np.write()  # Atualiza os LEDs
+    
+    
+# Loop principal
+while True:
+        
+        vrx_value = adc_vrx.read_u16()  # Lê joystick
+        acender_led_joystick(vrx_value, posx, posy)  # Atualiza LED com brilho proporcional
+        utime.sleep(0.1)  # Pequeno delay para estabilidade
+        
+        if button_a.value() == 0 and posx == 0 and posy == 0:
+            posx += 1
+            playerA[0] = vrx_value
+            
+            print(playerA)
+            print(playerB)
+        
+        elif button_a.value() == 0 and posx == 1 and posy == 0:
+            posx += 1
+            playerA[1] = vrx_value
+            
+            print(playerA)
+            print(playerB)
+
+        elif button_a.value() == 0 and posx == 2 and posy == 0:
+            playerA[2] = vrx_value
+            
+            print(playerA)
+            
+            posy = 4
+            posx = 0
+            
+        elif button_b.value() == 0 and posx == 0 and posy == 4:
+            posx += 1
+            playerB[0] = vrx_value
+         
+            print(playerA)            
+            print(playerB)
+        
+        elif button_b.value() == 0 and posx == 1 and posy == 4:
+            posx += 1
+            playerB[1] = vrx_value
+            print(playerA)
+            
+            print(playerB)
+        
+        elif button_b.value() == 0 and posx == 2 and posy == 4:
+            playerB[2] = vrx_value
+            print(playerA)
+            
+            print(playerB)
+                        
+
+            
+  # Verifica se os dois jogadores já preencheram todas as jogadas
+        if 0 not in playerA and 0 not in playerB:
+            #print("Fim de jogo! Ambos os jogadores fizeram 3 jogadas.")
+            
+            # Garante que todos os valores estejam entre 0 e 65535
+            rA, gA, bA = playerA
+            rB, gB, bB = playerB
+
+            # Mapeia cada valor de 0–65535 para 0–255
+            rA = map_value(rA, 0, 65535, 0, 65535)
+            gA = map_value(gA, 0, 65535, 0, 65535)
+            bA = map_value(bA, 0, 65535, 0, 65535)
+
+            rB = map_value(rB, 0, 65535, 0, 65535)
+            gB = map_value(gB, 0, 65535, 0, 65535)
+            bB = map_value(bB, 0, 65535, 0, 65535)
+
+            # Aplica nos LEDs desejados
+            np[16] = (rA, gA, bA)  # LED para Player A
+            np[18] = (rB, gB, bB)  # LED para Player B
+            np.write()
+            
+           
+
+             # Distância euclidiana
+            distA = math.sqrt((rA - RGB[0])**2 + (gA - RGB[1])**2 + (bA - RGB[2])**2)
+            distB = math.sqrt((rB - RGB[0])**2 + (gB - RGB[1])**2 + (bB - RGB[2])**2)
+            print ("diatancia A eh",distA)
+            print ("diatancia B eh",distB)
+
+            utime.sleep(3)       
+            # Piscar o LED do vencedor
+            if distA == distB:
+                vencedor = None # Empate
+            
+            elif distA < distB:
+                vencedor == 16
+                np[18] = (0, 0, 0)
+                np.write()
+                print ("np8", np[18])
+            elif distB < distA:    
+                np[16] = (0, 0, 0)
+                np.write()
+                print ("np16", np[16])
+            print ("vencedor", vencedor)
+
+                    
+            break            
+                       
+           
+
+            
+            
+            
+            
+
+            
+            
+            
+         
+ 
+
+
