@@ -93,53 +93,60 @@ while True:
         acender_led_joystick(vrx_value, posx, posy)  # Atualiza LED com brilho proporcional
         utime.sleep(0.1)  # Pequeno delay para estabilidade
         
-        if button_a.value() == 0 and posx == 0 and posy == 0:
+        if button_a.value() == 0 and posx == 0 and posy == 0: #quando o botao é apertado, avança para os próximos LED
+            utime.sleep(0.4) # deboucing de 0.4 s
             posx += 1
-            playerA[0] = vrx_value
+            
+            playerA[0] = vrx_value #escreve no vetor o valor de R escolhido pelo jogador A
             
             print(playerA)
             print(playerB)
         
         elif button_a.value() == 0 and posx == 1 and posy == 0:
+            utime.sleep(0.4)
             posx += 1
-            playerA[1] = vrx_value
+            playerA[1] = vrx_value #escreve no vetor o valor de G escolhido pelo jogador A
             
             print(playerA)
             print(playerB)
 
-        elif button_a.value() == 0 and posx == 2 and posy == 0:
-            playerA[2] = vrx_value
-            
-            print(playerA)
+        elif button_a.value() == 0 and posx == 2 and posy == 0: # término da rodada do jogador A
+            utime.sleep(0.4)
+            playerA[2] = vrx_value #escreve no vetor o valor de B escolhido pelo jogador A
             
             posy = 4
             posx = 0
-            
-        elif button_b.value() == 0 and posx == 0 and posy == 4:
+
+            print(playerA)
+            print(playerB)
+
+        elif button_b.value() == 0 and posx == 0 and posy == 4: # rodada do jogador B, acionamento por botão B
+
+            utime.sleep(0.4)
             posx += 1
-            playerB[0] = vrx_value
+            playerB[0] = vrx_value #escreve no vetor o valor de R escolhido pelo jogador B
          
             print(playerA)            
             print(playerB)
         
         elif button_b.value() == 0 and posx == 1 and posy == 4:
+            utime.sleep(0.4)
             posx += 1
-            playerB[1] = vrx_value
+            playerB[1] = vrx_value #escreve no vetor o valor de G escolhido pelo jogador B
+
             print(playerA)
-            
             print(playerB)
         
         elif button_b.value() == 0 and posx == 2 and posy == 4:
-            playerB[2] = vrx_value
-            print(playerA)
-            
-            print(playerB)
-                        
+            utime.sleep(0.4)
+            playerB[2] = vrx_value #escreve no vetor o valor de B escolhido pelo jogador B
 
+            print(playerA) 
+            print(playerB)
             
   # Verifica se os dois jogadores já preencheram todas as jogadas
         if 0 not in playerA and 0 not in playerB:
-            #print("Fim de jogo! Ambos os jogadores fizeram 3 jogadas.")
+            print("Fim de jogo! Ambos os jogadores fizeram 3 jogadas.") #isualização através do terminal
             
             # Garante que todos os valores estejam entre 0 e 65535
             rA, gA, bA = playerA
@@ -167,11 +174,11 @@ while True:
             print ("diatancia A eh",distA)
             print ("diatancia B eh",distB)
 
-            utime.sleep(3)       
-            # Piscar o LED do vencedor
+            utime.sleep(3) # delay de 3 segundos para revelação do vencedor da partida       
+            
             if distA == distB:
                 vencedor = None # Empate
-            
+            # após tres segundo do fim do jogo, o LED que exibi o resultado da mistura das cores do perdedor será apagada
             elif distA < distB:
                 vencedor == 16
                 np[18] = (0, 0, 0)
@@ -181,7 +188,7 @@ while True:
                 np[16] = (0, 0, 0)
                 np.write()
                 print ("np16", np[16])
-            print ("vencedor", vencedor)
+            print ("vencedor", vencedor) # visualizar através do terminal o vencedor
 
                     
             break            
